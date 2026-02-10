@@ -83,18 +83,9 @@ python manage.py runserver
 
 **1. Установить Docker** (если не установлен):
 
-```bash
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-# перелогиниться
-```
 
 **2. Склонировать репозиторий:**
 
-```bash
-git clone <your-repo-url> /opt/signing-service
-cd /opt/signing-service
-```
 
 **3. Настроить окружение:**
 
@@ -102,13 +93,6 @@ cd /opt/signing-service
 cp .env.example .env
 nano .env
 ```
-
-Обязательно изменить:
-- `DJANGO_SECRET_KEY` — случайная строка 50+ символов
-- `DJANGO_DEBUG=False`
-- `DJANGO_ALLOWED_HOSTS` — домен/IP сервера
-- `DB_PASSWORD` — надёжный пароль для PostgreSQL
-- `DJANGO_SUPERUSER_PASSWORD` — пароль администратора
 
 **4. Запустить:**
 
@@ -124,41 +108,6 @@ docker compose logs backend  # нет ошибок
 curl http://localhost/api/auth/profile/  # должен вернуть 401/403
 ```
 
-### SSL (HTTPS)
-
-Для production рекомендуется поставить reverse proxy (Caddy / Traefik / certbot + nginx) перед контейнером. Самый простой вариант — Caddy:
-
-```bash
-# Установить Caddy на хосте
-sudo apt install caddy
-
-# /etc/caddy/Caddyfile
-your-domain.kz {
-    reverse_proxy localhost:80
-}
-
-sudo systemctl restart caddy
-```
-
-Caddy автоматически получит и обновит SSL-сертификат от Let's Encrypt.
-
-### Обновление
-
-```bash
-cd /opt/signing-service
-git pull
-docker compose up -d --build
-```
-
-### Бэкап БД
-
-```bash
-# Создать дамп
-docker compose exec db pg_dump -U postgres signing_service > backup_$(date +%Y%m%d).sql
-
-# Восстановить
-docker compose exec -T db psql -U postgres signing_service < backup.sql
-```
 
 ## API Endpoints
 
@@ -203,19 +152,6 @@ docker compose exec -T db psql -U postgres signing_service < backup.sql
 | POST | `/api/packages/{id}/add-document/` | Добавить документ в пакет |
 | GET | `/api/packages/{id}/download-signed/` | Скачать ZIP подписанных документов |
 
-### Формат ZIP пакета
-
-```
-package_{uuid}_signed.zip
-├── originals/
-│   ├── document1.pdf
-│   └── document2.pdf
-└── signatures/
-    ├── document1.pdf.cms
-    └── document2.pdf.cms
-```
-
-ZIP содержит только успешно подписанные документы. Документы со статусом FAILED пропускаются.
 
 ## Флоу подписания документов и пакетов
 
@@ -317,24 +253,6 @@ pytest tests/integration/     # интеграционные
 pytest --cov=app --cov-report=html  # с покрытием
 ```
 
-## Переменные окружения
-
-| Переменная | По умолчанию | Описание |
-|-----------|-------------|----------|
-| `DJANGO_SECRET_KEY` | `change-me...` | Секретный ключ Django |
-| `DJANGO_DEBUG` | `False` | Режим отладки |
-| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Разрешённые хосты |
-| `DB_NAME` | `signing_service` | Имя БД |
-| `DB_USER` | `postgres` | Пользователь БД |
-| `DB_PASSWORD` | `postgres` | Пароль БД |
-| `DJANGO_SUPERUSER_USERNAME` | `admin` | Логин суперпользователя |
-| `DJANGO_SUPERUSER_PASSWORD` | `admin123` | Пароль суперпользователя |
-| `SIGEX_BASE_URL` | `https://sigex.kz` | URL Sigex API |
-| `SIGEX_TIMEOUT` | `30` | Таймаут запросов к Sigex (секунды) |
-| `SIGEX_QR_POLL_RETRIES` | `60` | Количество попыток опроса подписи |
-| `SIGEX_QR_POLL_INTERVAL` | `3` | Интервал опроса подписи (секунды) |
-| `FILE_STORAGE_BACKEND` | `local` | Хранилище файлов (`local` / `s3`) |
-| `APP_PORT` | `80` | Порт nginx на хосте |
 
 Sigex API работает без аутентификации для eGov QR подписания.
 
