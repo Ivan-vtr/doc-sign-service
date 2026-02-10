@@ -1,0 +1,30 @@
+{% extends "web/base.html" %}
+{% block title %}Вход - DocSign{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card card">
+        <div class="card-body">
+            <div class="auth-logo">Doc<span>Sign</span></div>
+            <p class="auth-subtitle">Войдите в свой аккаунт</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="username" class="form-label">Имя пользователя</label>
+                    <input type="text" class="form-control" id="username" name="username"
+                           placeholder="Введите имя пользователя" required autofocus>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Пароль</label>
+                    <input type="password" class="form-control" id="password" name="password"
+                           placeholder="Введите пароль" required>
+                </div>
+                <button type="submit" class="btn btn-brand w-100 mt-1">Войти</button>
+            </form>
+            <p class="auth-footer">
+                Нет аккаунта? <a href="{% url 'web-register' %}">Создать</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

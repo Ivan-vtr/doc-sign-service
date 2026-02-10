@@ -1,0 +1,84 @@
+{% extends "web/base.html" %}
+{% block title %}Пакеты - DocSign{% endblock %}
+{% block nav_packages %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Пакеты</h1>
+    <button class="btn btn-brand" data-bs-toggle="collapse" data-bs-target="#create-package-form">
+        Новый пакет
+    </button>
+</div>
+
+<div class="collapse mb-4" id="create-package-form">
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="pkg-title" class="form-label" style="font-size:.8rem;font-weight:600">Название</label>
+                        <input type="text" class="form-control" id="pkg-title" name="title"
+                               style="font-size:.875rem;border-radius:8px" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="pkg-desc" class="form-label" style="font-size:.8rem;font-weight:600">Описание</label>
+                        <input type="text" class="form-control" id="pkg-desc" name="description"
+                               style="font-size:.875rem;border-radius:8px">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-brand w-100">Создать</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if packages %}
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-clean mb-0">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Описание</th>
+                        <th>Документы</th>
+                        <th>Статус</th>
+                        <th>Создан</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pkg in packages %}
+                    <tr>
+                        <td><a href="{% url 'web-package-detail' pkg.id %}">{{ pkg.title }}</a></td>
+                        <td style="color:var(--text-secondary)">{{ pkg.description|default:"\u2014"|truncatechars:40 }}</td>
+                        <td>{{ pkg.document_count }}</td>
+                        <td><span class="status-badge status-{{ pkg.status }}">{{ pkg.status }}</span></td>
+                        <td style="color:var(--text-secondary)">{{ pkg.created_at|truncatechars:10 }}</td>
+                        <td class="text-end">
+                            {% if pkg.status == "draft" and pkg.document_count > 0 %}
+                            <a href="{% url 'web-package-signing' pkg.id %}" class="btn-action btn-action-success">Подписать все</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+    </div>
+    <p class="empty-state-title">Пакетов пока нет</p>
+    <p class="empty-state-text">Создайте пакет для группировки и подписания нескольких документов одновременно.</p>
+</div>
+{% endif %}
+{% endblock %}

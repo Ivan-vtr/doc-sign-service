@@ -1,0 +1,86 @@
+{% extends "web/base.html" %}
+{% block title %}{{ package.title }} - DocSign{% endblock %}
+{% block nav_packages %}active{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'web-packages' %}">Пакеты</a></li>
+        <li class="breadcrumb-item active">{{ package.title }}</li>
+    </ol>
+</nav>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0" style="font-weight:700;font-size:1.15rem">{{ package.title }}</h4>
+        <span class="status-badge status-{{ package.status.value }}">{{ package.status.value }}</span>
+    </div>
+    <div class="card-body">
+        {% if package.description %}
+        <p style="color:var(--text-secondary);font-size:.875rem;margin-bottom:1rem">{{ package.description }}</p>
+        {% endif %}
+
+        {% if package_docs %}
+        <div class="table-responsive">
+            <table class="table table-clean mb-0">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Имя файла</th>
+                        <th>Статус</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in package_docs %}
+                    <tr>
+                        <td style="font-weight:500">{{ doc.title }}</td>
+                        <td style="color:var(--text-secondary)">{{ doc.filename }}</td>
+                        <td><span class="status-badge status-{{ doc.status.value }}">{{ doc.status.value }}</span></td>
+                        <td class="text-end">
+                            <a href="{% url 'web-document-detail' doc.id %}" class="btn-action">Просмотр</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color:var(--text-secondary);font-size:.875rem">В этом пакете пока нет документов.</p>
+        {% endif %}
+    </div>
+    {% if package.status.value == "draft" and package_docs %}
+    <div class="card-footer">
+        <a href="{% url 'web-package-signing' package.id %}" class="btn btn-brand">Подписать все документы</a>
+    </div>
+    {% endif %}
+</div>
+
+{% if available_docs and package.status.value == "draft" %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0" style="font-weight:600;font-size:1rem">Добавить документ</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label for="doc-select" class="form-label" style="font-size:.8rem;font-weight:600">Выберите документ</label>
+                    <select class="form-select" id="doc-select" name="document_id"
+                            style="font-size:.875rem;border-radius:8px" required>
+                        <option value="">Выберите...</option>
+                        {% for doc in available_docs %}
+                        <option value="{{ doc.id }}">{{ doc.title }} ({{ doc.filename }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-brand w-100">Добавить в пакет</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

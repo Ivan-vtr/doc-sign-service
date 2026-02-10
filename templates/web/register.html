@@ -1,0 +1,85 @@
+{% extends "web/base.html" %}
+{% block title %}Регистрация - DocSign{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card card" style="max-width:480px">
+        <div class="card-body">
+            <div class="auth-logo">Doc<span>Sign</span></div>
+            <p class="auth-subtitle">Создайте аккаунт</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3 mb-3">
+                    <div class="col-7">
+                        <label for="username" class="form-label">Имя пользователя <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="username" name="username"
+                               value="{{ form_data.username|default:'' }}" required>
+                    </div>
+                    <div class="col-5">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email"
+                               value="{{ form_data.email|default:'' }}">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Пароль <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control" id="password" name="password"
+                           minlength="8" placeholder="Минимум 8 символов" required>
+                </div>
+                <div class="mb-3">
+                    <label for="full_name" class="form-label">ФИО <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="full_name" name="full_name"
+                           value="{{ form_data.full_name|default:'' }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="iin" class="form-label">ИИН <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="iin" name="iin"
+                           pattern="\d{12}" maxlength="12" placeholder="12-значный идентификационный номер"
+                           value="{{ form_data.iin|default:'' }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Тип аккаунта <span class="text-danger">*</span></label>
+                    <div class="signer-toggle">
+                        <input type="radio" name="signer_type" id="type_individual" value="individual"
+                               {% if form_data.signer_type != "legal_entity" %}checked{% endif %}
+                               onchange="toggleLegalFields()">
+                        <label for="type_individual">Физическое лицо</label>
+                        <input type="radio" name="signer_type" id="type_legal" value="legal_entity"
+                               {% if form_data.signer_type == "legal_entity" %}checked{% endif %}
+                               onchange="toggleLegalFields()">
+                        <label for="type_legal">Юридическое лицо</label>
+                    </div>
+                </div>
+                <div id="legal-fields" style="{% if form_data.signer_type != 'legal_entity' %}display:none{% endif %}">
+                    <div class="row g-3 mb-3">
+                        <div class="col-5">
+                            <label for="bin" class="form-label">БИН <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="bin" name="bin"
+                                   pattern="\d{12}" maxlength="12" placeholder="12 цифр"
+                                   value="{{ form_data.bin|default:'' }}">
+                        </div>
+                        <div class="col-7">
+                            <label for="company_name" class="form-label">Компания <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="company_name" name="company_name"
+                                   value="{{ form_data.company_name|default:'' }}">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-brand w-100 mt-1">Создать аккаунт</button>
+            </form>
+            <p class="auth-footer">
+                Уже есть аккаунт? <a href="{% url 'web-login' %}">Войти</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleLegalFields() {
+    var isLegal = document.getElementById('type_legal').checked;
+    document.getElementById('legal-fields').style.display = isLegal ? '' : 'none';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends "web/base.html" %}
+{% block title %}Мои документы - DocSign{% endblock %}
+{% block nav_docs %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Документы</h1>
+    <a href="{% url 'web-upload' %}" class="btn btn-brand">Загрузить</a>
+</div>
+
+{# ================= ПАКЕТЫ ================= #}
+{% if packages %}
+    {% for package in packages %}
+        <div class="package-block mb-4">
+
+            <h4 class="page-title" style="padding-bottom: 20px">
+                <a href="/packages/{{ package.id }}">
+                    {{ package.name }}
+                </a>
+            </h4>
+
+            <div class="row g-3">
+                {% for doc in package.documents %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card document-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex gap-3 mb-3">
+                                    <div class="doc-icon
+                                        {% if 'pdf' in doc.mime_type %}doc-icon-pdf
+                                        {% elif 'png' in doc.mime_type %}doc-icon-png
+                                        {% elif 'jpeg' in doc.mime_type or 'jpg' in doc.mime_type %}doc-icon-jpg
+                                        {% else %}doc-icon-default{% endif %}">
+                                        {% if 'pdf' in doc.mime_type %}PDF
+                                        {% elif 'png' in doc.mime_type %}PNG
+                                        {% elif 'jpeg' in doc.mime_type or 'jpg' in doc.mime_type %}JPG
+                                        {% else %}ФАЙЛ{% endif %}
+                                    </div>
+
+                                    <div class="flex-grow-1 min-width-0">
+                                        <div class="d-flex justify-content-between align-items-start gap-2">
+                                            <div class="doc-title text-truncate">{{ doc.title }}</div>
+                                            <span class="status-badge status-{{ doc.status }}">
+                                                {{ doc.status }}
+                                            </span>
+                                        </div>
+                                        <div class="doc-meta text-truncate">{{ doc.filename }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="doc-meta mb-3">
+                                    <span class="file-size" data-bytes="{{ doc.file_size }}">
+                                        {{ doc.file_size }} Б
+                                    </span>
+                                    &middot; {{ doc.created_at_formatted }}
+
+                                </div>
+
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="{% url 'web-document-detail' doc.id %}" class="btn-action">
+                                        Просмотр
+                                    </a>
+                                    <a href="/api/documents/{{ doc.id }}/download/" class="btn-action">
+                                        Скачать исходный
+                                    </a>
+
+                                    {% if doc.status == "signed" %}
+                                        <a href="/api/documents/{{ doc.id }}/download-signed/"
+                                           class="btn-action btn-action-success">
+                                            Скачать подписанный
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'web-signing' doc.id %}"
+                                           class="btn-action btn-action-success">
+                                            Подписать
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </div>
+        <hr>
+
+    {% endfor %}
+{% endif %}
+
+{# ================= БЕЗ ПАКЕТА ================= #}
+{% if documents %}
+    <div class="row g-3">
+        {% for doc in documents %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card document-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="doc-icon
+                                {% if 'pdf' in doc.mime_type %}doc-icon-pdf
+                                {% elif 'png' in doc.mime_type %}doc-icon-png
+                                {% elif 'jpeg' in doc.mime_type or 'jpg' in doc.mime_type %}doc-icon-jpg
+                                {% else %}doc-icon-default{% endif %}">
+                                {% if 'pdf' in doc.mime_type %}PDF
+                                {% elif 'png' in doc.mime_type %}PNG
+                                {% elif 'jpeg' in doc.mime_type or 'jpg' in doc.mime_type %}JPG
+                                {% else %}ФАЙЛ{% endif %}
+                            </div>
+
+                            <div class="flex-grow-1 min-width-0">
+                                <div class="d-flex justify-content-between align-items-start gap-2">
+                                    <div class="doc-title text-truncate">{{ doc.title }}</div>
+                                    <span class="status-badge status-{{ doc.status }}">
+                                        {{ doc.status }}
+                                    </span>
+                                </div>
+                                <div class="doc-meta text-truncate">{{ doc.filename }}</div>
+                            </div>
+                        </div>
+
+                        <div class="doc-meta mb-3">
+                            <span class="file-size" data-bytes="{{ doc.file_size }}">
+                                {{ doc.file_size }} Б
+                            </span>
+                            &middot; {{ doc.created_at_formatted }}
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="{% url 'web-document-detail' doc.id %}" class="btn-action">
+                                Просмотр
+                            </a>
+                            <a href="/api/documents/{{ doc.id }}/download/" class="btn-action">
+                                Скачать исходный
+                            </a>
+
+                            {% if doc.status == "signed" %}
+                                <a href="/api/documents/{{ doc.id }}/download-signed/"
+                                   class="btn-action btn-action-success">
+                                    Скачать подписанный
+                                </a>
+                            {% else %}
+                                <a href="{% url 'web-signing' doc.id %}"
+                                   class="btn-action btn-action-success">
+                                    Подписать
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% if not packages and not documents %}
+    <div class="empty-state">
+        <p class="empty-state-title">Документов пока нет</p>
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.file-size').forEach(function(el) {
+    el.textContent = formatFileSize(parseInt(el.dataset.bytes));
+});
+</script>
+{% endblock %}
